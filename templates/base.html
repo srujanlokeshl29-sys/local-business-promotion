@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ _t('site_title') }}{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- TOP BAR WITH LANGUAGE & NOTICE -->
+<div class="top-announcement-bar py-1 bg-dark text-white-50">
+    <div class="container d-flex justify-content-between align-items-center">
+        <small class="d-none d-md-inline">
+            <i class="bi bi-geo-alt-fill text-warning me-1"></i> Supporting Neighborhood Commerce & Small Businesses
+        </small>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="small text-white-50"><i class="bi bi-translate me-1"></i> {{ _t('language') }}:</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ url_for('set_language', lang='en') }}" class="btn btn-outline-light btn-sm py-0 px-2 {% if current_lang == 'en' %}active fw-bold{% endif %}">English</a>
+                <a href="{{ url_for('set_language', lang='kn') }}" class="btn btn-outline-light btn-sm py-0 px-2 {% if current_lang == 'kn' %}active fw-bold{% endif %}">ಕನ್ನಡ</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm main-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('home') }}">
+            <span class="brand-icon">🏪</span>
+            <span>Local<span class="text-warning">Biz</span></span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu" aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
+                        <i class="bi bi-house-door me-1"></i> {{ _t('home') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'explore' %}active{% endif %}" href="{{ url_for('explore') }}">
+                        <i class="bi bi-search me-1"></i> {{ _t('explore') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'compare_prices' %}active{% endif %}" href="{{ url_for('compare_prices') }}">
+                        <i class="bi bi-tags me-1"></i> {{ _t('price_comparison') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'offers_page' %}active{% endif %}" href="{{ url_for('offers_page') }}">
+                        <i class="bi bi-percent me-1"></i> {{ _t('offers') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'analytics' %}active{% endif %}" href="{{ url_for('analytics') }}">
+                        <i class="bi bi-bar-chart-line me-1"></i> {{ _t('analytics') }}
+                    </a>
+                </li>
+            </ul>
+
+            <!-- USER MENU / AUTH BUTTONS -->
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="user-avatar-circle">{{ current_user.full_name[0] }}</span>
+                            <span class="d-none d-lg-inline">{{ current_user.full_name }}</span>
+                            <span class="badge bg-warning text-dark">{{ current_user.role|capitalize }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+                            {% if current_user.is_admin() %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> {{ _t('admin_dashboard') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_businesses') }}"><i class="bi bi-building-check me-2"></i> Verify Businesses</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"><i class="bi bi-people me-2"></i> Manage Users</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_reviews') }}"><i class="bi bi-shield-exclamation me-2"></i> Moderation</a></li>
+                            {% elif current_user.is_owner() %}
+                                <li><a class="dropdown-item" href="{{ url_for('owner_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> {{ _t('owner_dashboard') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('owner_add_business') }}"><i class="bi bi-plus-circle me-2"></i> {{ _t('add_business') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('owner_products') }}"><i class="bi bi-box-seam me-2"></i> My Products</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('owner_offers') }}"><i class="bi bi-percent me-2"></i> {{ _t('manage_offers') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('owner_enquiries') }}"><i class="bi bi-envelope me-2"></i> Customer Enquiries</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('owner_analytics') }}"><i class="bi bi-graph-up me-2"></i> Store Analytics</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('customer_dashboard') }}"><i class="bi bi-person me-2"></i> {{ _t('customer_dashboard') }}</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('customer_dashboard') }}#enquiries"><i class="bi bi-chat-left-text me-2"></i> My Enquiries</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('customer_dashboard') }}#reviews"><i class="bi bi-star me-2"></i> My Reviews</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i> {{ _t('logout') }}</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('login') }}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> {{ _t('login') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-warning btn-sm px-3 fw-semibold text-dark" href="{{ url_for('register') }}">
+                            <i class="bi bi-person-plus me-1"></i> {{ _t('register') }}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- FLASH MESSAGES -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% elif category == 'danger' %}bi-exclamation-octagon-fill text-danger{% elif category == 'warning' %}bi-exclamation-triangle-fill text-warning{% else %}bi-info-circle-fill text-info{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- MAIN PAGE CONTENT -->
+<main class="page-content py-4">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- FOOTER -->
+<footer class="footer mt-auto py-5 bg-dark text-white">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                    <span>🏪</span> Local<span class="text-warning">Biz</span>
+                </h5>
+                <p class="text-white-50">
+                    {{ _t('about_desc') }}
+                </p>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-secondary">Hiriyur</span>
+                    <span class="badge bg-secondary">Chitradurga</span>
+                    <span class="badge bg-secondary">Karnataka</span>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <h6 class="text-warning fw-bold mb-3">Quick Links</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="{{ url_for('home') }}">{{ _t('home') }}</a></li>
+                    <li><a href="{{ url_for('explore') }}">{{ _t('explore') }}</a></li>
+                    <li><a href="{{ url_for('compare_prices') }}">{{ _t('price_comparison') }}</a></li>
+                    <li><a href="{{ url_for('offers_page') }}">{{ _t('offers') }}</a></li>
+                    <li><a href="{{ url_for('analytics') }}">{{ _t('analytics') }}</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h6 class="text-warning fw-bold mb-3">For Businesses</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="{{ url_for('register') }}?type=owner">Register Your Business</a></li>
+                    <li><a href="{{ url_for('owner_dashboard') }}">Business Dashboard</a></li>
+                    <li><a href="{{ url_for('owner_analytics') }}">Promotion Analytics</a></li>
+                    <li><a href="{{ url_for('compare_prices') }}">Market Price Trends</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h6 class="text-warning fw-bold mb-3">Community Portal</h6>
+                <p class="small text-white-50 mb-2">Designed for Computer Science Community Project demonstration.</p>
+                <div class="p-3 rounded bg-secondary bg-opacity-25 border border-secondary border-opacity-50">
+                    <small class="d-block text-white"><strong>Demo Accounts:</strong></small>
+                    <small class="text-white-50 d-block">Admin: <code>admin@localbiz.com</code></small>
+                    <small class="text-white-50 d-block">Owner: <code>owner@localbiz.com</code></small>
+                    <small class="text-white-50 d-block">Customer: <code>customer@localbiz.com</code></small>
+                    <small class="text-warning d-block mt-1">Default Password: <code>Role@123</code></small>
+                </div>
+            </div>
+        </div>
+        <hr class="border-secondary my-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center text-white-50 small">
+            <div>{{ _t('footer_rights') }}</div>
+            <div class="mt-2 mt-md-0 fw-semibold text-warning">{{ _t('footer_tagline') }}</div>
+        </div>
+    </div>
+</footer>
+
+<!-- FLOATING AI CHATBOT TRIGGER & WIDGET -->
+<div class="ai-chat-btn" onclick="toggleAiChat()" title="{{ _t('ai_assistant') }}">
+    <i class="bi bi-robot"></i>
+    <span class="ai-badge-pulse"></span>
+</div>
+
+<div class="ai-chat-popup" id="aiChatPopup">
+    <div class="ai-chat-header">
+        <div class="d-flex align-items-center gap-2">
+            <div class="ai-avatar">🤖</div>
+            <div>
+                <h6 class="fw-bold mb-0 text-white">{{ _t('ai_assistant') }}</h6>
+                <small class="text-white-50" style="font-size: 0.75rem;">
+                    <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i> Smart Local Business Guide
+                </small>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-1">
+            <button class="btn btn-sm btn-link text-white-50 p-1" onclick="toggleAiChat()" title="Close">
+                <i class="bi bi-x-lg fs-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="ai-chat-body" id="aiChatBody">
+        <div class="chat-bubble chat-bubble-bot">
+            {% if current_lang == 'kn' %}
+                ನಮಸ್ಕಾರ! 🙏 ನಾನು ನಿಮ್ಮ <strong>ಲೋಕಲ್ ಬಿಜ್ AI ಸಹಾಯಕ</strong>. ಹಿರಿಯೂರು ಮತ್ತು ಚಿತ್ರದುರ್ಗದ ಸ್ಥಳೀಯ ಅಂಗಡಿಗಳು, ಉತ್ಪನ್ನಗಳ ಬೆಲೆ ಹೋಲಿಕೆ, ಕೂಪನ್‌ಗಳು ಹಾಗೂ ಸ್ಥಳದ ಬಗ್ಗೆ ಏನು ಬೇಕಾದರೂ ನನ್ನನ್ನು ಕೇಳಿ!
+            {% else %}
+                Hello! 👋 I am your <strong>LocalBiz AI Assistant</strong>. Ask me anything about local shops, product prices, active discount coupons, and directions in Hiriyur and Chitradurga!
+            {% endif %}
+            <div class="mt-2 d-flex flex-wrap gap-1">
+                <span class="chat-suggestion-chip" onclick='sendAiMessage({% if current_lang == "kn" %}"ಹಿರಿಯೂರಿನ ಉತ್ತಮ ರೆಸ್ಟೋರೆಂಟ್‌ಗಳು"{% else %}"Best restaurants in Hiriyur"{% endif %})'>
+                    🍔 {% if current_lang == 'kn' %}ಉತ್ತಮ ಉಪಹಾರ ಗೃಹಗಳು{% else %}Top Restaurants{% endif %}
+                </span>
+                <span class="chat-suggestion-chip" onclick='sendAiMessage({% if current_lang == "kn" %}"ಮೊಬೈಲ್ ಚಾರ್ಜರ್ ಬೆಲೆ ಹೋಲಿಕೆ"{% else %}"Compare 25W charger prices"{% endif %})'>
+                    ⚖️ {% if current_lang == 'kn' %}ಚಾರ್ಜರ್ ಬೆಲೆ ಹೋಲಿಕೆ{% else %}Compare Chargers{% endif %}
+                </span>
+                <span class="chat-suggestion-chip" onclick='sendAiMessage({% if current_lang == "kn" %}"ವಿಶೇಷ ರಿಯಾಯಿತಿ ಕೂಪನ್‌ಗಳು"{% else %}"Show active discount coupons"{% endif %})'>
+                    🏷️ {% if current_lang == 'kn' %}ರಿಯಾಯಿತಿ ಕೂಪನ್‌ಗಳು{% else %}Discount Coupons{% endif %}
+                </span>
+                <span class="chat-suggestion-chip" onclick='sendAiMessage({% if current_lang == "kn" %}"ನನ್ನ ಹತ್ತಿರವಿರುವ ಅಂಗಡಿಗಳು"{% else %}"Shops near my location"{% endif %})'>
+                    📍 {% if current_lang == 'kn' %}ಹತ್ತಿರದ ಅಂಗಡಿಗಳು{% else %}Shops Near Me{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-chat-footer">
+        <div class="input-group">
+            <input type="text" id="aiChatInput" class="form-control form-control-sm border-end-0" placeholder="{% if current_lang == 'kn' %}ಸ್ಥಳೀಯ ಅಂಗಡಿ, ಬೆಲೆ ಅಥವಾ ಆಫರ್ ಬಗ್ಗೆ ಕೇಳಿ...{% else %}Ask about shops, prices, offers...{% endif %}">
+            <button class="btn btn-primary btn-sm px-3 border-start-0" type="button" onclick="sendAiMessage()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Business - {{ business.business_name }} | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('owner_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Edit Business</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4">
+                    <h3 class="fw-bold mb-1"><i class="bi bi-pencil-square me-2"></i> Update Business Profile</h3>
+                    <p class="text-white-50 mb-0">Modify information for {{ business.business_name }}.</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form action="{{ url_for('owner_edit_business', business_id=business.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Business Name *</label>
+                            <input type="text" name="business_name" class="form-control" value="{{ business.business_name }}" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Category *</label>
+                                <select name="category_id" class="form-select" required>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}" {% if business.category_id == cat.id %}selected{% endif %}>
+                                            {{ cat.icon }} {{ cat.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Town / City *</label>
+                                <input type="text" name="city" class="form-control" value="{{ business.city }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Shop Address *</label>
+                            <input type="text" name="address" class="form-control" value="{{ business.address }}" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Phone Number *</label>
+                                <input type="tel" name="phone" class="form-control" value="{{ business.phone }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email Address</label>
+                                <input type="email" name="email" class="form-control" value="{{ business.email or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Website</label>
+                            <input type="url" name="website" class="form-control" value="{{ business.website or '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Photo URL</label>
+                            <input type="url" name="image_url" class="form-control" value="{{ business.image_url or '' }}">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Description *</label>
+                            <textarea name="description" class="form-control" rows="4" required>{{ business.description }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{{ url_for('owner_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

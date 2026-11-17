@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Enquiries | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 my-3">
+    <div class="row g-4">
+        <!-- SIDEBAR -->
+        <div class="col-lg-3 col-xl-2">
+            <div class="dashboard-sidebar">
+                <div class="sidebar-heading">Business Management</div>
+                <a href="{{ url_for('owner_dashboard') }}" class="sidebar-nav-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('owner_add_business') }}" class="sidebar-nav-link">
+                    <i class="bi bi-plus-circle"></i> Add Business
+                </a>
+                <a href="{{ url_for('owner_products') }}" class="sidebar-nav-link">
+                    <i class="bi bi-box-seam"></i> My Products
+                </a>
+                <a href="{{ url_for('owner_add_product') }}" class="sidebar-nav-link">
+                    <i class="bi bi-bag-plus"></i> Add Product
+                </a>
+                <a href="{{ url_for('owner_offers') }}" class="sidebar-nav-link">
+                    <i class="bi bi-percent"></i> Manage Offers
+                </a>
+
+                <div class="sidebar-heading mt-3">Customer Interaction</div>
+                <a href="{{ url_for('owner_enquiries') }}" class="sidebar-nav-link active">
+                    <i class="bi bi-envelope"></i> Enquiries
+                </a>
+                <a href="{{ url_for('owner_reviews') }}" class="sidebar-nav-link">
+                    <i class="bi bi-star"></i> Ratings & Reviews
+                </a>
+
+                <div class="sidebar-heading mt-3">Analytics</div>
+                <a href="{{ url_for('owner_analytics') }}" class="sidebar-nav-link">
+                    <i class="bi bi-graph-up"></i> Performance
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-9 col-xl-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Customer Enquiries & Direct Leads</h3>
+                    <p class="text-muted mb-0">Respond promptly to potential customers seeking information about your services and stock.</p>
+                </div>
+                <span class="badge bg-primary fs-6">{{ enquiries|length }} Total Enquiries</span>
+            </div>
+
+            {% if enquiries %}
+                <div class="d-flex flex-column gap-3">
+                    {% for enq in enquiries %}
+                        <div class="card border-0 shadow-sm rounded-4 p-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3 border-bottom pb-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h5 class="fw-bold mb-0 text-primary">{{ enq.customer_name }}</h5>
+                                        <span class="badge bg-light text-dark border">{{ enq.business.business_name }}</span>
+                                    </div>
+                                    <div class="small text-muted d-flex flex-wrap gap-3">
+                                        <span><i class="bi bi-telephone-fill text-success"></i> <a href="tel:{{ enq.customer_phone }}" class="text-decoration-none text-muted">{{ enq.customer_phone }}</a></span>
+                                        {% if enq.customer_email %}
+                                            <span><i class="bi bi-envelope-fill text-primary"></i> {{ enq.customer_email }}</span>
+                                        {% endif %}
+                                        <span><i class="bi bi-clock"></i> {{ enq.created_at.strftime('%d %b, %Y at %I:%M %p') }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2 mt-md-0">
+                                    {% if enq.status == 'replied' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">Replied</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1">Awaiting Reply</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-bold text-muted text-uppercase">Customer Message:</label>
+                                <p class="mb-0 bg-light p-3 rounded-3 text-secondary">{{ enq.message }}</p>
+                            </div>
+
+                            {% if enq.reply_message %}
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-success text-uppercase">Your Sent Reply:</label>
+                                    <p class="mb-0 bg-success bg-opacity-10 text-success p-3 rounded-3 border border-success-subtle">
+                                        <i class="bi bi-reply-fill me-1"></i> {{ enq.reply_message }}
+                                    </p>
+                                </div>
+                            {% endif %}
+
+                            <!-- REPLY ACCORDION / FORM -->
+                            <div class="pt-2">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3" type="button" data-bs-toggle="collapse" data-bs-target="#replyBox{{ enq.id }}">
+                                    <i class="bi bi-reply me-1"></i> {% if enq.reply_message %}Send Another Reply{% else %}Reply to Customer{% endif %}
+                                </button>
+
+                                <div class="collapse mt-3" id="replyBox{{ enq.id }}">
+                                    <form action="{{ url_for('owner_reply_enquiry', enquiry_id=enq.id) }}" method="POST">
+                                        <div class="mb-2">
+                                            <textarea name="reply_message" class="form-control" rows="3" placeholder="Type your response to the customer here..." required>{{ enq.reply_message or '' }}</textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
+                                            Submit Reply
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                    <p class="text-muted mb-0">No customer enquiries received yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Register | LocalBiz{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="auth-card shadow-sm border-0 rounded-4">
+                <div class="text-center mb-4">
+                    <span class="fs-1">🏪</span>
+                    <h2 class="fw-bold text-primary mt-2">Create Account</h2>
+                    <p class="subtitle text-muted">Join the LocalBiz community today</p>
+                </div>
+
+                <form action="{{ url_for('register') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Full Name *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                            <input type="text" name="name" class="form-control border-start-0" placeholder="e.g. Ramesh Kumar" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Email Address *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" class="form-control border-start-0" placeholder="name@example.com" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Phone Number *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-phone"></i></span>
+                                <input type="tel" name="phone" class="form-control border-start-0" placeholder="9845012345" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">I am registering as *</label>
+                        <select name="account_type" class="form-select" required>
+                            <option value="customer" {% if request.args.get('type') != 'owner' %}selected{% endif %}>
+                                🛒 Customer / Shopper (Discover shops, compare prices, write reviews)
+                            </option>
+                            <option value="owner" {% if request.args.get('type') == 'owner' %}selected{% endif %}>
+                                🏪 Business Owner (Register a business, list products, post offers)
+                            </option>
+                        </select>
+                        <small class="text-muted">Business owners will be prompted to add their shop profile upon registration.</small>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Password *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control border-start-0" placeholder="At least 6 characters" minlength="6" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Confirm Password *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock-fill"></i></span>
+                                <input type="password" name="confirm_password" class="form-control border-start-0" placeholder="Repeat password" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 mb-3">
+                        <i class="bi bi-person-plus me-1"></i> Register Account
+                    </button>
+                </form>
+
+                <p class="text-center small text-muted mb-0">
+                    Already have an account? <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

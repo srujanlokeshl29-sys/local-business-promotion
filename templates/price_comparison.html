@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Local Price Comparison | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- HERO HEADER -->
+    <div class="p-4 p-md-5 rounded-4 bg-primary text-white shadow-sm mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                    <i class="bi bi-shield-check me-1"></i> Transparent Neighborhood Shopping
+                </span>
+                <h1 class="fw-bold mb-2">{{ _t('price_comparison_title') }}</h1>
+                <p class="text-white-50 mb-4" style="max-width: 650px;">
+                    {{ _t('price_comparison_desc') }}
+                </p>
+
+                <!-- SEARCH & FILTER -->
+                <form action="{{ url_for('compare_prices') }}" method="GET" class="row g-2 bg-white p-2 rounded-3 text-dark shadow-sm">
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                            <input type="text" name="q" value="{{ query or '' }}" class="form-control border-0 shadow-none" placeholder="Search product (e.g. rice, charger, shirt, facial)...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select border-0 shadow-none">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>
+                                    {{ cat.icon }} {{ cat.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">
+                            Compare
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <div style="font-size: 5rem;">⚖️🛍️</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPARISON RESULTS -->
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1 text-primary">Catalog Comparison Results</h4>
+        <p class="text-muted small">Compare product pricing across multiple registered shops in your area.</p>
+    </div>
+
+    {% if grouped_products %}
+        <div class="row g-4">
+            {% for prod_name, items in grouped_products.items() %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-primary">{{ prod_name }}</h5>
+                                <small class="text-muted">Available at {{ items|length }} local seller{{ 's' if items|length > 1 else '' }}</small>
+                            </div>
+                            {% if items|length > 1 %}
+                                <span class="deal-badge"><i class="bi bi-tag-fill me-1"></i> Lowest from ₹{{ "%.2f"|format(items[0].product.price) }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive mb-0">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small text-muted text-uppercase">
+                                        <tr>
+                                            <th class="ps-4">Shop / Store Name</th>
+                                            <th>Location / City</th>
+                                            <th>Unit Details</th>
+                                            <th>Price</th>
+                                            <th class="text-end pe-4">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in items %}
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <strong>{{ item.business.business_name }}</strong>
+                                                    <span class="badge bg-light text-dark border ms-1">{{ item.business.category.name }}</span>
+                                                    {% if loop.first and items|length > 1 %}
+                                                        <span class="badge bg-success ms-1">Best Price</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-muted small">
+                                                    <i class="bi bi-geo-alt text-danger me-1"></i> {{ item.business.address }}, {{ item.business.city }}
+                                                </td>
+                                                <td class="text-muted small">{{ item.product.unit }}</td>
+                                                <td>
+                                                    <span class="fw-bold fs-5 {% if loop.first and items|length > 1 %}text-success{% else %}text-primary{% endif %}">
+                                                        ₹{{ "%.2f"|format(item.product.price) }}
+                                                    </span>
+                                                </td>
+                                                <td class="text-end pe-4">
+                                                    <a href="{{ url_for('business_details', business_id=item.business.id) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                        Visit Store <i class="bi bi-chevron-right small"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-3 shadow-sm p-4">
+            <div style="font-size: 3.5rem;">⚖️</div>
+            <h4 class="fw-bold mt-3">No Products Matched</h4>
+            <p class="text-muted mb-4">No matching products found in the catalog. Try searching for rice, mobile charger, shirt, or facial treatment.</p>
+            <a href="{{ url_for('compare_prices') }}" class="btn btn-primary rounded-pill px-4">
+                View All Price Comparisons
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

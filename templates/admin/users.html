@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}User Management | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 my-3">
+    <div class="row g-4">
+        <!-- ADMIN SIDEBAR -->
+        <div class="col-lg-3 col-xl-2">
+            <div class="dashboard-sidebar">
+                <div class="sidebar-heading">Admin Center</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-nav-link">
+                    <i class="bi bi-speedometer2"></i> Overview
+                </a>
+                <a href="{{ url_for('admin_businesses') }}" class="sidebar-nav-link">
+                    <i class="bi bi-building-check"></i> Verification
+                </a>
+                <a href="{{ url_for('admin_users') }}" class="sidebar-nav-link active">
+                    <i class="bi bi-people"></i> User Accounts
+                </a>
+                <a href="{{ url_for('admin_categories') }}" class="sidebar-nav-link">
+                    <i class="bi bi-grid"></i> Categories
+                </a>
+                <a href="{{ url_for('admin_reviews') }}" class="sidebar-nav-link">
+                    <i class="bi bi-shield-exclamation"></i> Moderation
+                </a>
+                <a href="{{ url_for('analytics') }}" class="sidebar-nav-link">
+                    <i class="bi bi-bar-chart-line"></i> Portal Analytics
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-9 col-xl-10">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">User Account Governance</h3>
+                    <p class="text-muted mb-0">View registered customers, business owners, and administrative staff.</p>
+                </div>
+                <!-- Role Filter -->
+                <div class="btn-group btn-group-sm mt-3 mt-md-0">
+                    <a href="{{ url_for('admin_users', role='all') }}" class="btn btn-outline-primary {% if current_role == 'all' %}active{% endif %}">All Users</a>
+                    <a href="{{ url_for('admin_users', role='customer') }}" class="btn btn-outline-primary {% if current_role == 'customer' %}active{% endif %}">Customers</a>
+                    <a href="{{ url_for('admin_users', role='owner') }}" class="btn btn-outline-primary {% if current_role == 'owner' %}active{% endif %}">Business Owners</a>
+                    <a href="{{ url_for('admin_users', role='admin') }}" class="btn btn-outline-primary {% if current_role == 'admin' %}active{% endif %}">Admins</a>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-primary">Registered Accounts ({{ users|length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small text-muted">
+                                <tr>
+                                    <th class="ps-4">User</th>
+                                    <th>Role</th>
+                                    <th>Phone</th>
+                                    <th>Registered Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in users %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="user-avatar-circle" style="width: 34px; height: 34px;">{{ u.full_name[0] }}</span>
+                                                <div>
+                                                    <strong>{{ u.full_name }}</strong>
+                                                    <small class="text-muted d-block">{{ u.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if u.role == 'admin' %}
+                                                <span class="badge bg-danger">Administrator</span>
+                                            {% elif u.role == 'owner' %}
+                                                <span class="badge bg-primary">Business Owner</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Customer</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ u.phone }}</td>
+                                        <td class="small">{{ u.created_at.strftime('%d %b, %Y') }}</td>
+                                        <td>
+                                            {% if u.is_active %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Deactivated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            {% if u.id != current_user.id %}
+                                                <form action="{{ url_for('admin_toggle_user', user_id=u.id) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+                                                        {% if u.is_active %}Deactivate{% else %}Reactivate{% endif %}
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-muted small fst-italic">Current Session</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

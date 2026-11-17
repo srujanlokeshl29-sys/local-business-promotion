@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}My Account | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- USER PROFILE BANNER -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-primary text-white">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-avatar-circle" style="width: 58px; height: 58px; font-size: 1.6rem;">
+                    {{ current_user.full_name[0] }}
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1">{{ current_user.full_name }}</h3>
+                    <p class="text-white-50 mb-0">
+                        <i class="bi bi-envelope me-1"></i> {{ current_user.email }} &bull; 
+                        <i class="bi bi-telephone me-1"></i> {{ current_user.phone }}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">Customer Account</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-blue"><i class="bi bi-envelope"></i></div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-primary">{{ enquiries|length }}</h3>
+                    <small class="text-muted">Total Enquiries Sent</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-amber"><i class="bi bi-star"></i></div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-primary">{{ reviews|length }}</h3>
+                    <small class="text-muted">Reviews Submitted</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-green"><i class="bi bi-search"></i></div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-primary">{{ searches|length }}</h3>
+                    <small class="text-muted">Recorded Searches</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS: ENQUIRIES & REVIEWS -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-white border-bottom p-0">
+            <ul class="nav nav-tabs border-0 px-3 pt-2" id="customerTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold py-3 px-4 border-0" id="enquiries-tab" data-bs-toggle="tab" data-bs-target="#enquiriesTab" type="button" role="tab">
+                        <i class="bi bi-envelope me-2"></i> My Enquiries ({{ enquiries|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold py-3 px-4 border-0" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviewsTab" type="button" role="tab">
+                        <i class="bi bi-star me-2"></i> My Reviews ({{ reviews|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold py-3 px-4 border-0" id="history-tab" data-bs-toggle="tab" data-bs-target="#historyTab" type="button" role="tab">
+                        <i class="bi bi-clock-history me-2"></i> Search History
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-4">
+            <div class="tab-content" id="customerTabsContent">
+                <!-- ENQUIRIES TAB -->
+                <div class="tab-pane fade show active" id="enquiriesTab" role="tabpanel">
+                    {% if enquiries %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light small text-muted">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Target Business</th>
+                                        <th>Your Message</th>
+                                        <th>Status</th>
+                                        <th>Owner Response</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enq in enquiries %}
+                                        <tr>
+                                            <td class="text-nowrap small text-muted">{{ enq.created_at.strftime('%d %b, %Y') }}</td>
+                                            <td>
+                                                <a href="{{ url_for('business_details', business_id=enq.business_id) }}" class="fw-bold text-decoration-none">
+                                                    {{ enq.business.business_name }}
+                                                </a>
+                                            </td>
+                                            <td class="small text-secondary">{{ enq.message }}</td>
+                                            <td>
+                                                {% if enq.status == 'replied' %}
+                                                    <span class="badge bg-success">Replied</span>
+                                                {% elif enq.status == 'read' %}
+                                                    <span class="badge bg-info text-dark">Read</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small">
+                                                {% if enq.reply_message %}
+                                                    <div class="p-2 bg-success bg-opacity-10 text-success rounded-3 border border-success-subtle">
+                                                        <i class="bi bi-chat-quote-fill me-1"></i> {{ enq.reply_message }}
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted fst-italic">Awaiting owner response</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">You have not sent any enquiries to businesses yet.</p>
+                            <a href="{{ url_for('explore') }}" class="btn btn-primary btn-sm rounded-pill px-3">Browse Local Shops</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- REVIEWS TAB -->
+                <div class="tab-pane fade" id="reviewsTab" role="tabpanel">
+                    {% if reviews %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for rev in reviews %}
+                                <div class="p-3 border rounded-3 bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold mb-0">
+                                            <a href="{{ url_for('business_details', business_id=rev.business_id) }}" class="text-decoration-none">
+                                                {{ rev.business.business_name }}
+                                            </a>
+                                        </h6>
+                                        <div class="text-warning">
+                                            {% for i in range(rev.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                            <small class="text-muted ms-2">{{ rev.created_at.strftime('%d %b, %Y') }}</small>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 text-secondary small">{{ rev.comment }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">You haven't written any reviews yet.</p>
+                            <a href="{{ url_for('explore') }}" class="btn btn-primary btn-sm rounded-pill px-3">Explore and Review</a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- HISTORY TAB -->
+                <div class="tab-pane fade" id="historyTab" role="tabpanel">
+                    {% if searches %}
+                        <ul class="list-group list-group-flush">
+                            {% for s in searches %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <i class="bi bi-search text-muted me-2"></i>
+                                        <strong>{{ s.search_query or 'General Browse' }}</strong>
+                                        {% if s.category_filter %}
+                                            <span class="badge bg-light text-dark border ms-1">{{ s.category_filter }}</span>
+                                        {% endif %}
+                                        {% if s.location_filter %}
+                                            <span class="badge bg-light text-dark border ms-1">📍 {{ s.location_filter }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">{{ s.searched_at.strftime('%d %b, %I:%M %p') }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center py-3">No search history recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

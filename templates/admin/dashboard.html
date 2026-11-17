@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Control Center | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 my-3">
+    <div class="row g-4">
+        <!-- ADMIN SIDEBAR -->
+        <div class="col-lg-3 col-xl-2">
+            <div class="dashboard-sidebar">
+                <div class="sidebar-heading">Admin Center</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-nav-link active">
+                    <i class="bi bi-speedometer2"></i> Overview
+                </a>
+                <a href="{{ url_for('admin_businesses') }}" class="sidebar-nav-link">
+                    <i class="bi bi-building-check"></i> Verification
+                    {% if pending_businesses %}
+                        <span class="badge bg-danger ms-auto">{{ pending_businesses|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_users') }}" class="sidebar-nav-link">
+                    <i class="bi bi-people"></i> User Accounts
+                </a>
+                <a href="{{ url_for('admin_categories') }}" class="sidebar-nav-link">
+                    <i class="bi bi-grid"></i> Categories
+                </a>
+                <a href="{{ url_for('admin_reviews') }}" class="sidebar-nav-link">
+                    <i class="bi bi-shield-exclamation"></i> Moderation
+                    {% if reported_reviews %}
+                        <span class="badge bg-warning text-dark ms-auto">{{ reported_reviews|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('analytics') }}" class="sidebar-nav-link">
+                    <i class="bi bi-bar-chart-line"></i> Portal Analytics
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN ADMIN DASHBOARD -->
+        <div class="col-lg-9 col-xl-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Administrator Control Center</h2>
+                    <p class="text-muted mb-0">Platform overview, business verification, and content governance.</p>
+                </div>
+                <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill">Super Admin Mode</span>
+            </div>
+
+            <!-- OVERVIEW STATS -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper stat-icon-blue"><i class="bi bi-people"></i></div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Users</p>
+                            <h3 class="fw-bold mb-0 text-primary">{{ total_users }}</h3>
+                            <small class="text-muted">{{ total_customers }} Customers, {{ total_owners }} Owners</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper stat-icon-purple"><i class="bi bi-shop"></i></div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Businesses</p>
+                            <h3 class="fw-bold mb-0 text-primary">{{ total_businesses }}</h3>
+                            <small class="text-muted">Registered in portal</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper stat-icon-amber"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <p class="text-muted small mb-0">Pending Approvals</p>
+                            <h3 class="fw-bold mb-0 text-danger">{{ pending_businesses|length }}</h3>
+                            <small class="text-danger">Awaiting verification</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper stat-icon-green"><i class="bi bi-grid"></i></div>
+                        <div>
+                            <p class="text-muted small mb-0">Categories</p>
+                            <h3 class="fw-bold mb-0 text-primary">{{ categories|length }}</h3>
+                            <small class="text-muted">Bilingual catalog</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PENDING VERIFICATIONS QUEUE -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-primary">
+                        <i class="bi bi-building-check me-2"></i> Pending Business Verifications
+                    </h5>
+                    <span class="badge bg-warning text-dark">{{ pending_businesses|length }} Require Action</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if pending_businesses %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Shop Name</th>
+                                        <th>Owner</th>
+                                        <th>Category</th>
+                                        <th>City</th>
+                                        <th>Phone</th>
+                                        <th class="text-end pe-4">Approve / Reject</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for b in pending_businesses %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <strong>{{ b.business_name }}</strong>
+                                                <small class="text-muted d-block">{{ b.address }}</small>
+                                            </td>
+                                            <td>{{ b.owner.full_name }}</td>
+                                            <td><span class="badge bg-light text-dark border">{{ b.category.name }}</span></td>
+                                            <td>📍 {{ b.city }}</td>
+                                            <td>{{ b.phone }}</td>
+                                            <td class="text-end pe-4">
+                                                <form action="{{ url_for('admin_set_business_status', business_id=b.id) }}" method="POST" class="d-inline">
+                                                    <input type="hidden" name="status" value="approved">
+                                                    <button type="submit" class="btn btn-success btn-sm px-3 rounded-pill">
+                                                        <i class="bi bi-check-lg"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <form action="{{ url_for('admin_set_business_status', business_id=b.id) }}" method="POST" class="d-inline ms-1">
+                                                    <input type="hidden" name="status" value="rejected">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
+                                                        <i class="bi bi-x-lg"></i> Reject
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-patch-check-fill text-success fs-1"></i>
+                            <h6 class="fw-bold mt-2">All Clear!</h6>
+                            <p class="text-muted small mb-0">No pending business applications awaiting review.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RECENT SEARCHES & RECENT USERS -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-clock-history me-1"></i> Recent Customer Searches (Market Trends)</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_searches %}
+                                <ul class="list-group list-group-flush small">
+                                    {% for s in recent_searches %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="bi bi-search text-muted me-2"></i>
+                                                <strong>{{ s.search_query or 'General Directory' }}</strong>
+                                                {% if s.category_filter %}<span class="badge bg-light text-dark border ms-1">{{ s.category_filter }}</span>{% endif %}
+                                                {% if s.location_filter %}<span class="badge bg-light text-dark border ms-1">📍 {{ s.location_filter }}</span>{% endif %}
+                                            </div>
+                                            <span class="text-muted">{{ s.searched_at.strftime('%d %b %I:%M %p') }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted text-center py-4 mb-0">No search logs yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-person-check me-1"></i> Newly Registered Accounts</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_users %}
+                                <ul class="list-group list-group-flush small">
+                                    {% for u in recent_users %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ u.full_name }}</strong> ({{ u.email }})
+                                            </div>
+                                            <div>
+                                                <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'owner' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                                    {{ u.role|capitalize }}
+                                                </span>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted text-center py-4 mb-0">No users registered yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

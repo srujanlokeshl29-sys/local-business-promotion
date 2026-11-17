@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Offers & Promotions | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 my-3">
+    <div class="row g-4">
+        <!-- SIDEBAR -->
+        <div class="col-lg-3 col-xl-2">
+            <div class="dashboard-sidebar">
+                <div class="sidebar-heading">Business Management</div>
+                <a href="{{ url_for('owner_dashboard') }}" class="sidebar-nav-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('owner_add_business') }}" class="sidebar-nav-link">
+                    <i class="bi bi-plus-circle"></i> Add Business
+                </a>
+                <a href="{{ url_for('owner_products') }}" class="sidebar-nav-link">
+                    <i class="bi bi-box-seam"></i> My Products
+                </a>
+                <a href="{{ url_for('owner_add_product') }}" class="sidebar-nav-link">
+                    <i class="bi bi-bag-plus"></i> Add Product
+                </a>
+                <a href="{{ url_for('owner_offers') }}" class="sidebar-nav-link active">
+                    <i class="bi bi-percent"></i> Manage Offers
+                </a>
+
+                <div class="sidebar-heading mt-3">Customer Interaction</div>
+                <a href="{{ url_for('owner_enquiries') }}" class="sidebar-nav-link">
+                    <i class="bi bi-envelope"></i> Enquiries
+                </a>
+                <a href="{{ url_for('owner_reviews') }}" class="sidebar-nav-link">
+                    <i class="bi bi-star"></i> Ratings & Reviews
+                </a>
+
+                <div class="sidebar-heading mt-3">Analytics</div>
+                <a href="{{ url_for('owner_analytics') }}" class="sidebar-nav-link">
+                    <i class="bi bi-graph-up"></i> Performance
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-9 col-xl-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Special Offers & Discount Management</h3>
+                    <p class="text-muted mb-0">Create promotional discounts and track customer coupon interactions.</p>
+                </div>
+            </div>
+
+            <!-- CREATE OFFER FORM CARD -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-tag-fill me-2"></i> Create New Special Offer / Coupon</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ url_for('owner_offers') }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-muted">Target Shop *</label>
+                                <select name="business_id" class="form-select" required>
+                                    {% for b in businesses %}
+                                        <option value="{{ b.id }}">{{ b.business_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold text-muted">Offer Title *</label>
+                                <input type="text" name="title" class="form-control" placeholder="e.g. Festival 20% OFF on Traditional Sweets" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Discount % *</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.5" name="discount_percent" class="form-control" placeholder="15" required>
+                                    <span class="input-group-text bg-light">%</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-muted">Coupon Code (Optional)</label>
+                                <input type="text" name="coupon_code" class="form-control" placeholder="e.g. FESTIVAL20">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-muted">Valid Until *</label>
+                                <input type="date" name="valid_until" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-muted">Short Terms / Details</label>
+                                <input type="text" name="description" class="form-control" placeholder="e.g. Valid on minimum bill of ₹500">
+                            </div>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                                <i class="bi bi-broadcast me-1"></i> Publish Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- OFFERS PERFORMANCE LIST -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-percent me-2"></i> Active & Past Promotions</h5>
+                    <span class="badge bg-light text-dark border">{{ offers|length }} Offers</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if offers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Title & Details</th>
+                                        <th>Shop</th>
+                                        <th>Discount</th>
+                                        <th>Coupon Code</th>
+                                        <th>Valid Until</th>
+                                        <th>Customer Clicks</th>
+                                        <th class="text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for o in offers %}
+                                        <tr>
+                                            <td class="ps-4">
+                                                <strong>{{ o.title }}</strong>
+                                                <small class="text-muted d-block">{{ o.description or 'No terms specified' }}</small>
+                                            </td>
+                                            <td><span class="badge bg-light text-dark border">{{ o.business.business_name }}</span></td>
+                                            <td><span class="badge bg-danger">{{ o.discount_percent }}% OFF</span></td>
+                                            <td><code>{{ o.coupon_code or 'Walk-in' }}</code></td>
+                                            <td class="small">{{ o.valid_until.strftime('%d %b, %Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                                    <i class="bi bi-cursor-fill me-1"></i> {{ o.clicks_count }} clicks
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <form action="{{ url_for('owner_delete_offer', offer_id=o.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this offer?');">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove Offer">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4 mb-0">No active promotions yet. Create one above to drive foot traffic!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

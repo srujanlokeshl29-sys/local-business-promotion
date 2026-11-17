@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Special Offers & Deals | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- HERO -->
+    <div class="p-4 p-md-5 rounded-4 bg-danger text-white shadow-sm mb-5 text-center position-relative overflow-hidden">
+        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-3">
+            <i class="bi bi-percent me-1"></i> Community Deals & Savings
+        </span>
+        <h1 class="fw-bold mb-2">Exclusive Local Offers & Discount Coupons</h1>
+        <p class="text-white-50 mx-auto mb-0" style="max-width: 650px;">
+            Support small businesses in your neighborhood while enjoying verified promotional discounts, cashback codes, and limited-time deals.
+        </p>
+    </div>
+
+    <!-- OFFERS GRID -->
+    {% if offers %}
+        <div class="row g-4">
+            {% for offer in offers %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden d-flex flex-column">
+                        <div class="bg-warning bg-opacity-25 p-4 border-bottom border-warning d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-danger fs-5 px-3 py-2 fw-bold">
+                                    {{ offer.discount_percent }}% OFF
+                                </span>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block"><i class="bi bi-clock"></i> Valid until</small>
+                                <strong class="text-dark">{{ offer.valid_until.strftime('%d %b, %Y') }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="p-4 d-flex flex-column flex-grow-1 justify-content-between">
+                            <div>
+                                <div class="mb-2">
+                                    <span class="badge bg-light text-primary border">
+                                        {{ offer.business.category.icon }} {{ offer.business.category.name }}
+                                    </span>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-2">{{ offer.title }}</h5>
+                                <p class="text-muted small mb-3">{{ offer.description }}</p>
+
+                                <div class="small text-muted mb-3">
+                                    <i class="bi bi-shop text-primary me-1"></i> <strong>{{ offer.business.business_name }}</strong><br>
+                                    <i class="bi bi-geo-alt text-danger me-1"></i> {{ offer.business.address }}, {{ offer.business.city }}
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                                {% if offer.coupon_code %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <code class="fs-6 fw-bold text-dark">{{ offer.coupon_code }}</code>
+                                        <button class="btn btn-sm btn-outline-secondary btn-copy-coupon py-0 px-2" data-coupon="{{ offer.coupon_code }}" title="Copy Code">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success">Walk-in Deal</span>
+                                {% endif %}
+
+                                <a href="{{ url_for('offer_click', offer_id=offer.id) }}" class="btn btn-primary btn-sm rounded-pill px-3">
+                                    Claim Deal <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-3 shadow-sm p-4">
+            <div style="font-size: 3.5rem;">🏷️</div>
+            <h4 class="fw-bold mt-3">No Active Offers Right Now</h4>
+            <p class="text-muted mb-4">Local businesses will update new festival promotions and discounts soon. Check back shortly!</p>
+            <a href="{{ url_for('explore') }}" class="btn btn-primary rounded-pill px-4">
+                Explore Local Businesses
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

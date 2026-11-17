@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Register Business | LocalBiz{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- BREADCRUMB -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('owner_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Register Business</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4">
+                    <h3 class="fw-bold mb-1"><i class="bi bi-shop me-2"></i> Register Your Local Business</h3>
+                    <p class="text-white-50 mb-0">Fill in the details below to list your shop on the LocalBiz discovery portal.</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form action="{{ url_for('owner_add_business') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Business Name *</label>
+                            <input type="text" name="business_name" class="form-control" placeholder="e.g. Sri Krishna Sweets & Bakery" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Category *</label>
+                                <select name="category_id" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }} ({{ cat.kannada_name }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Town / City *</label>
+                                <input type="text" name="city" class="form-control" value="Hiriyur" placeholder="e.g. Hiriyur, Chitradurga" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Full Shop Address *</label>
+                            <input type="text" name="address" class="form-control" placeholder="Shop No, Street, Landmark, Circle..." required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Business Phone Number *</label>
+                                <input type="tel" name="phone" class="form-control" value="{{ current_user.phone }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Business Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ current_user.email }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Website / Social Media Link</label>
+                            <input type="url" name="website" class="form-control" placeholder="https://instagram.com/yourshop or https://yourshop.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Storefront Photo URL</label>
+                            <input type="url" name="image_url" class="form-control" placeholder="https://images.unsplash.com/... or paste image URL">
+                            <small class="text-muted">Leave empty to use a high-quality default category photo.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Business Description *</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="Describe the specialties of your shop, services offered, years in business, brands carried..." required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{{ url_for('owner_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                                <i class="bi bi-check-circle me-1"></i> Submit Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Categories | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 my-3">
+    <div class="row g-4">
+        <!-- ADMIN SIDEBAR -->
+        <div class="col-lg-3 col-xl-2">
+            <div class="dashboard-sidebar">
+                <div class="sidebar-heading">Admin Center</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-nav-link">
+                    <i class="bi bi-speedometer2"></i> Overview
+                </a>
+                <a href="{{ url_for('admin_businesses') }}" class="sidebar-nav-link">
+                    <i class="bi bi-building-check"></i> Verification
+                </a>
+                <a href="{{ url_for('admin_users') }}" class="sidebar-nav-link">
+                    <i class="bi bi-people"></i> User Accounts
+                </a>
+                <a href="{{ url_for('admin_categories') }}" class="sidebar-nav-link active">
+                    <i class="bi bi-grid"></i> Categories
+                </a>
+                <a href="{{ url_for('admin_reviews') }}" class="sidebar-nav-link">
+                    <i class="bi bi-shield-exclamation"></i> Moderation
+                </a>
+                <a href="{{ url_for('analytics') }}" class="sidebar-nav-link">
+                    <i class="bi bi-bar-chart-line"></i> Portal Analytics
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-9 col-xl-10">
+            <h3 class="fw-bold mb-1">Business Categories Management</h3>
+            <p class="text-muted mb-4">Manage bilingual category taxonomy (English and Kannada) for business classifications.</p>
+
+            <div class="row g-4">
+                <!-- ADD CATEGORY FORM -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-plus-circle me-1"></i> Add Category</h5>
+                        <form action="{{ url_for('admin_categories') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">English Name *</label>
+                                <input type="text" name="name" class="form-control" placeholder="e.g. Bakeries & Sweets" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Kannada Name (ಕನ್ನಡ ಹೆಸರು) *</label>
+                                <input type="text" name="kannada_name" class="form-control" placeholder="e.g. ಬೇಕರಿ ಮತ್ತು ಸಿಹಿತಿಂಡಿಗಳು" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Emoji Icon *</label>
+                                <input type="text" name="icon" class="form-control" placeholder="🍰" value="🏪" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Description</label>
+                                <textarea name="description" class="form-control" rows="2" placeholder="Brief overview of shops in this category..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold">
+                                Create Category
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CATEGORIES LIST TABLE -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="fw-bold mb-0 text-primary">Active Categories ({{ categories|length }})</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small text-muted">
+                                        <tr>
+                                            <th class="ps-4">Icon & Name</th>
+                                            <th>Kannada Name</th>
+                                            <th>Businesses</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cat in categories %}
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <span class="fs-4 me-2">{{ cat.icon }}</span>
+                                                    <strong>{{ cat.name }}</strong>
+                                                </td>
+                                                <td><span class="fw-bold text-primary">{{ cat.kannada_name }}</span></td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border">
+                                                        {{ cat.businesses|length }} shops
+                                                    </span>
+                                                </td>
+                                                <td class="small text-muted">{{ cat.description|truncate(50) if cat.description else '—' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

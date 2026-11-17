@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Businesses & Location Tracker | LocalBiz{% endblock %}
+
+{% block content %}
+<!-- EXPLORE HERO & FILTER BAR -->
+<section class="bg-primary text-white py-4 mb-4 rounded-3 shadow-sm">
+    <div class="container">
+        <h1 class="fw-bold mb-1">
+            <i class="bi bi-compass me-2"></i> {{ _t('explore') }}
+        </h1>
+        <p class="text-white-50 mb-3">Discover verified shops, compare catalog prices, and track businesses near your location.</p>
+
+        <!-- MULTI-CRITERIA SEARCH FORM -->
+        <form action="{{ url_for('explore') }}" method="GET" class="row g-2 bg-white p-3 rounded-3 text-dark shadow-sm">
+            {% if user_lat and user_lng %}
+                <input type="hidden" name="lat" value="{{ user_lat }}">
+                <input type="hidden" name="lng" value="{{ user_lng }}">
+            {% endif %}
+
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label small fw-semibold text-muted mb-1">Keyword / Shop Name</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ selected_query or '' }}" class="form-control border-start-0" placeholder="e.g. food, mobile, saree, books, bike...">
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-semibold text-muted mb-1">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>
+                            {{ cat.icon }} {% if current_lang == 'kn' %}{{ cat.kannada_name }}{% else %}{{ cat.name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small fw-semibold text-muted mb-1">Town / City</label>
+                <select name="city" class="form-select">
+                    <option value="">All Towns</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>📍 {{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small fw-semibold text-muted mb-1">Min Rating</label>
+                <select name="rating" class="form-select">
+                    <option value="">Any Rating</option>
+                    <option value="4.5" {% if selected_rating == 4.5 %}selected{% endif %}>⭐ 4.5 & up</option>
+                    <option value="4.0" {% if selected_rating == 4.0 %}selected{% endif %}>⭐ 4.0 & up</option>
+                    <option value="3.5" {% if selected_rating == 3.5 %}selected{% endif %}>⭐ 3.5 & up</option>
+                </select>
+            </div>
+
+            <div class="col-lg-1 col-md-12 d-flex align-items-end">
+                <button type="submit" class="btn btn-warning w-100 fw-bold">
+                    <i class="bi bi-filter"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- TRACK LOCATION & NEAR ME TOOLBAR -->
+<div class="container mb-4">
+    <div class="location-tracker-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h6 class="fw-bold text-primary mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-geo-alt-fill text-danger fs-5"></i> 
+                    <span>Live Location Tracker & Near Me Tool</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">GPS Enabled</span>
+                </h6>
+                <p class="small text-muted mb-0">Detect your GPS coordinates or select your town to calculate precise store distances in real time.</p>
+            </div>
+
+            <!-- GPS DETECT BUTTON & PRESETS -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="detectUserLocation()">
+                    <i class="bi bi-crosshair me-1"></i> Detect My Location
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown">
+                        Select Town
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="setPresetLocation('Hiriyur Town Center', 13.9450, 76.6210)">📍 Hiriyur Center (13.945° N, 76.621° E)</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="setPresetLocation('Chitradurga Fort Road', 14.2250, 76.3980)">📍 Chitradurga Fort (14.225° N, 76.398° E)</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="setPresetLocation('Bengaluru City', 12.9716, 77.5946)">📍 Bengaluru (12.971° N, 77.594° E)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVE LOCATION INDICATOR & RADIUS FILTERS -->
+        <div class="mt-3 pt-3 border-top d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div>
+                <span id="activeLocationBadge" class="small {% if not user_lat %}d-none{% endif %} bg-white p-2 rounded-3 border shadow-sm">
+                    {% if user_lat and user_lng %}
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> <strong>Location Active:</strong> ({{ "%.4f"|format(user_lat) }}° N, {{ "%.4f"|format(user_lng) }}° E)
+                        <button onclick="clearUserLocation()" class="btn btn-sm btn-link text-danger p-0 ms-2 text-decoration-none" title="Clear Location"><i class="bi bi-x-circle-fill"></i></button>
+                    {% endif %}
+                </span>
+                <span id="locationStatusText" class="small text-muted ms-1"></span>
+            </div>
+
+            <!-- RADIUS PILLS -->
+            <div class="d-flex align-items-center gap-1 small">
+                <span class="text-muted fw-semibold me-1">Radius:</span>
+                <a href="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, sort=selected_sort) }}" class="badge {% if not selected_radius %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-2 py-1">All</a>
+                <a href="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=2, sort='nearest') }}" class="badge {% if selected_radius == 2 %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-2 py-1">&lt; 2 km</a>
+                <a href="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=5, sort='nearest') }}" class="badge {% if selected_radius == 5 %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-2 py-1">&lt; 5 km</a>
+                <a href="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=15, sort='nearest') }}" class="badge {% if selected_radius == 15 %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-2 py-1">&lt; 15 km</a>
+                <a href="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=50, sort='nearest') }}" class="badge {% if selected_radius == 50 %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-2 py-1">&lt; 50 km</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CATEGORY FILTER PILLS -->
+<div class="container mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-1">
+        <span class="small fw-bold text-muted me-2">Quick Filter:</span>
+        <a href="{{ url_for('explore', q=selected_query, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort=selected_sort) }}" class="filter-pill {% if not selected_category %}active{% endif %}">
+            All Categories
+        </a>
+        {% for cat in categories %}
+            <a href="{{ url_for('explore', category=cat.id, q=selected_query, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort=selected_sort) }}" class="filter-pill {% if selected_category == cat.id %}active{% endif %}">
+                {{ cat.icon }} {% if current_lang == 'kn' %}{{ cat.kannada_name }}{% else %}{{ cat.name }}{% endif %}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- RESULTS HEADER & SORT -->
+<div class="container mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center py-2 border-bottom">
+        <div class="mb-2 mb-md-0">
+            <span class="fw-bold fs-5">{{ businesses|length }}</span> <span class="text-muted">Businesses Found</span>
+            {% if selected_query or selected_category or selected_city or selected_rating or user_lat or selected_radius %}
+                <a href="{{ url_for('explore') }}" class="badge bg-secondary text-decoration-none ms-2">
+                    <i class="bi bi-x-circle me-1"></i> Clear Filters
+                </a>
+            {% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted text-nowrap">Sort by:</label>
+            <select class="form-select form-select-sm" onchange="location = this.value;">
+                <option value="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort='popular') }}" {% if selected_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort='nearest') }}" {% if selected_sort == 'nearest' %}selected{% endif %}>Nearest to Me (GPS)</option>
+                <option value="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort='rating') }}" {% if selected_sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                <option value="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort='newest') }}" {% if selected_sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="{{ url_for('explore', q=selected_query, category=selected_category, city=selected_city, rating=selected_rating, lat=user_lat, lng=user_lng, radius=selected_radius, sort='name') }}" {% if selected_sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- BUSINESS LIST GRID -->
+<div class="container mb-5">
+    {% if businesses %}
+        <div class="row g-4">
+            {% for biz in businesses %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="custom-card d-flex flex-column h-100">
+                        <div class="card-img-wrapper">
+                            <img src="{{ biz.image_url }}" alt="{{ biz.business_name }}" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60'">
+                            <span class="card-category-badge">
+                                {{ biz.category.icon }} {% if current_lang == 'kn' %}{{ biz.category.kannada_name }}{% else %}{{ biz.category.name }}{% endif %}
+                            </span>
+                            <span class="card-rating-badge">
+                                ⭐ {{ biz.rating if biz.rating > 0 else 'New' }}
+                            </span>
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0">{{ biz.business_name }}</h5>
+                            </div>
+                            <p class="text-muted small mb-3 flex-grow-1">{{ biz.description|truncate(110) }}</p>
+
+                            <div class="small text-muted mb-3 d-flex flex-column gap-1">
+                                <div><i class="bi bi-geo-alt text-primary me-1"></i> {{ biz.address }}, <strong>{{ biz.city }}</strong></div>
+                                <div><i class="bi bi-telephone text-primary me-1"></i> {{ biz.phone }}</div>
+                            </div>
+
+                            <!-- LIVE DISTANCE BADGE & PROMOTIONS -->
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                {% if biz.user_distance is defined and biz.user_distance is not none %}
+                                    <span class="distance-badge">
+                                        <i class="bi bi-signpost-2-fill text-success"></i> ~{{ biz.user_distance }} km away
+                                    </span>
+                                {% endif %}
+
+                                {% if biz.offers %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                        <i class="bi bi-tag-fill me-1"></i> {{ biz.offers[0].discount_percent }}% OFF Available
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small text-muted"><i class="bi bi-chat-quote"></i> {{ biz.total_reviews }} reviews</span>
+                                <div class="d-flex gap-1">
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ biz.latitude }},{{ biz.longitude }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-2" title="{{ _t('get_directions') }}">
+                                        <i class="bi bi-signpost-2"></i> Maps
+                                    </a>
+                                    <a href="{{ url_for('business_details', business_id=biz.id) }}" class="btn btn-primary btn-sm px-3 rounded-pill">
+                                        {{ _t('view_details') }} <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-3 shadow-sm p-4">
+            <div style="font-size: 3.5rem;">🔍</div>
+            <h4 class="fw-bold mt-3">No Businesses Found</h4>
+            <p class="text-muted mb-4">We couldn't find any businesses matching your search criteria or radius distance. Try expanding your radius or removing filters.</p>
+            <a href="{{ url_for('explore') }}" class="btn btn-primary rounded-pill px-4">
+                View All Businesses
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
